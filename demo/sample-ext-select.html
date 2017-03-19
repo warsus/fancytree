@@ -33,10 +33,10 @@
 	$(function(){
 		$("#tree").fancytree({
 			extensions: ["select"],
-			autoScroll: true,
 			checkbox: true,
 			source: {url: "ajax-tree-local.json"},
 			select: {
+				checkbox: "radio"
 			},
 			lazyLoad: function(event, data) {
 				data.result = {url: "ajax-sub2.json"}
