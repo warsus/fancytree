@@ -157,6 +157,14 @@ TOOLS.getNode = function(key){
 };
 
 
+/** Get first node with matching title. */
+TOOLS.getNodeByTitle = function(title){
+	var tree = $("#tree").fancytree("getTree");
+
+	return tree.findFirst(function(n){ return n.title === title; });
+};
+
+
 /** Get current Fancytree. */
 TOOLS.getTree = function(){
 	return $("#tree").fancytree("getTree");

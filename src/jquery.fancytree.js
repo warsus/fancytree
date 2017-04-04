@@ -56,7 +56,7 @@ var i, attr,
 	CLASS_ATTRS = "active expanded focus folder hideCheckbox lazy selected unselectable".split(" "),
 	CLASS_ATTR_MAP = {},
 	// Top-level Fancytree node attributes, that can be set by dict
-	NODE_ATTRS = "expanded extraClasses folder hideCheckbox icon key lazy refKey selected statusNodeType title tooltip unselectable".split(" "),
+	NODE_ATTRS = "expanded extraClasses folder hideCheckbox icon key lazy refKey selected statusNodeType title tooltip unselectable unselectableStatus".split(" "),
 	NODE_ATTR_MAP = {},
 	// Mapping of lowercase -> real name (because HTML5 data-... attribute only supports lowercase)
 	NODE_ATTR_LOWERCASE_MAP = {},
@@ -671,7 +671,7 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 		return res;
 	},
 	/* Apply selection state (internal use only) */
-	_changeSelectStatusAttrs: function (state) {
+	_changeSelectStatusAttrs: function(state) {
 		var changed = false;
 
 		switch(state){
@@ -704,6 +704,20 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	 * This includes (de)selecting all children.
 	 */
 	fixSelection3AfterClick: function() {
+		var flag = this.isSelected();
+
+//		this.debug("fixSelection3AfterClick()");
+
+		this.visit(function(node){
+			node._changeSelectStatusAttrs(flag);
+		});
+		this.fixSelection3FromEndNodes();
+	},
+	/**
+	 * Fix selection status, after this node's children where loaded.
+	 * Child nodes that have `.selected` definedThis includes (de)selecting all children.
+	 */
+	fixSelection3AfterLoad: function() {
 		var flag = this.isSelected();
 
 //		this.debug("fixSelection3AfterClick()");
@@ -1759,9 +1773,11 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	},
 	/**Select this node, i.e. check the checkbox.
 	 * @param {boolean} [flag=true] pass false to deselect
+	 * @param {object} [opts] additional options. Defaults to {noEvents: false, p
+	 *     propagateDown: null, propagateUp: null, callback: null }
 	 */
-	setSelected: function(flag){
-		return this.tree._callHook("nodeSetSelected", this, flag);
+	setSelected: function(flag, opts){
+		return this.tree._callHook("nodeSetSelected", this, flag, opts);
 	},
 	/**Mark a lazy node as 'error', 'loading', 'nodata', or 'ok'.
 	 * @param {string} status 'error'|'empty'|'ok'
@@ -4015,8 +4031,10 @@ $.extend(Fancytree.prototype,
 	 *
 	 * @param {EventData} ctx
 	 * @param {boolean} [flag=true]
+	 * @param {object} [opts] additional options. Defaults to {noEvents: false,
+	 *     propagateDown: null, propagateUp: null, }
 	 */
-	nodeSetSelected: function(ctx, flag) {
+	nodeSetSelected: function(ctx, flag, callOpts) {
 		var node = ctx.node,
 			tree = ctx.tree,
 			opts = ctx.options;
@@ -4043,7 +4061,6 @@ $.extend(Fancytree.prototype,
 		}else if(opts.selectMode === 3){
 			// multi.hier selection mode
 			node.selected = flag;
-//			this._fixSelectionState(node);
 			node.fixSelection3AfterClick();
 		}
 		node.selected = flag;

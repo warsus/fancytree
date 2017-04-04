@@ -804,7 +804,7 @@ QUnit.test("'modifyChild' event", function(assert) {
 });
 
 /*******************************************************************************
- * Lazy loading
+ * generateFormElements
  */
 QUnit.module("generateFormElements()");
 
@@ -907,6 +907,7 @@ QUnit.test("multi select", function(assert) {
 		"filter => isActive(): generate selected nodes");
 });
 
+
 QUnit.test("selectMode: 3", function(assert) {
 	tools.setup(assert);
 	assert.expect(4);
@@ -942,6 +943,7 @@ QUnit.test("selectMode: 3", function(assert) {
 	assert.equal($result.find("input[type=checkbox]").length, 7,
 		"stopOnParents: false: all nodes created");
 });
+
 
 /*******************************************************************************
  * Lazy loading
@@ -1005,6 +1007,7 @@ QUnit.test("Using ajax options for `source`; .click() expands a lazy folder", fu
 	});
 });
 
+
 QUnit.test("Using $.ajax promise for `source`; .click() expands a lazy folder", function(assert) {
 	tools.setup(assert);
 	assert.expect(12);
@@ -1050,6 +1053,86 @@ QUnit.test("Using $.ajax promise for `source`; .click() expands a lazy folder", 
 			done();
 		}
 	});
+});
+
+/******************************************************************************/
+
+QUnit.module("Selection mode 3");
+
+QUnit.test("load behavior", function(assert) {
+	tools.setup(assert);
+	assert.expect(10);
+
+	var tree;
+
+	$("#tree").fancytree({
+		selectMode: 3,
+		source: [
+			{title: "n1", children: [
+				{title: "n1.1", selected: true},
+				{title: "n1.2", selected: false},
+				{title: "n1.3", selected: null}
+			]},
+			{title: "n2 (all selected)", children: [
+				{title: "n2.1", selected: true,  unslectable: true, unselectableStatus: true},
+				// {title: "n2.2", selected: false, unslectable: true, unselectableStatus: true},
+				// {title: "n2.3", selected: null,  unslectable: true, unselectableStatus: true},
+				{title: "n2.4", selected: true,  unslectable: true, unselectableStatus: false},
+				// {title: "n2.5", selected: false, unslectable: true, unselectableStatus: false},
+				// {title: "n2.6", selected: null,  unslectable: true, unselectableStatus: false}
+				{title: "n2.7", selected: true,  unslectable: true, unselectableStatus: null}
+				// {title: "n2.8", selected: false, unslectable: true, unselectableStatus: null},
+				// {title: "n2.9", selected: null,  unslectable: true, unselectableStatus: null}
+			]}
+		],
+		init: function(event, data) {
+			// Set key from first part of title
+			data.tree.visit(function(n) {
+				n.key = n.title.split(" ")[0];
+			});
+		},
+		// postProcess: function(event, data) {
+		// 	alert(data.result)
+		// 	$.each(data.result, function(i, n) {
+		// 		n.title += "!";
+		// 	});
+		// },
+		generateIds: true
+	});
+	tree = $.ui.fancytree.getTree();
+
+	tools.getNode("n1").setSelected();
+
+	assert.equal(tools.getNode("n1.1").selected, true,
+		"propagate down `select` (simple child) 1/3");
+	assert.equal(tools.getNode("n1.2").selected, true,
+		"propagate down `select` (simple child) 2/3");
+	assert.equal(tools.getNode("n1.3").selected, true,
+		"propagate down `select` (simple child) 3/3");
+
+	tools.getNode("n1").setSelected(false);
+
+	assert.equal(tools.getNode("n1.1").selected, false,
+		"propagate down `deselect` (simple child)");
+
+	tools.getNode("n2").setSelected();
+
+	assert.equal(tools.getNode("n2.1").selected, true,
+		"propagate down `select` (unselectable status: true)");
+	assert.equal(tools.getNode("n2.4").selected, false,
+		"propagate down `select` (unselectable status: false)");
+	assert.equal(tools.getNode("n2.7").selected, true,
+		"propagate down `select` (unselectable status: undefined)");
+
+	tools.getNode("n2").setSelected(false);
+
+	assert.equal(tools.getNode("n2.1").selected, true,
+		"propagate down `deselect` (unselectable status: true)");
+	assert.equal(tools.getNode("n2.4").selected, false,
+		"propagate down `deselect` (unselectable status: false)");
+	assert.equal(tools.getNode("n2.7").selected, false,
+		"propagate down `deselect` (unselectable status: undefined)");
+
 });
 
 

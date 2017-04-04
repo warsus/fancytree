@@ -22,29 +22,20 @@
 
 <script type="text/javascript">
 	var SOURCE = [
-		{title: "Node 1" },
-		{title: "Node 2 (selected: true)", selected: true },
-		{title: "Node 3 (selected: true, unselectable: true)", selected: true, unselectable: true },
-		{title: "Folder 4", folder: true, key: "id3",
+		{title: "item1 with key and tooltip", tooltip: "Look, a tool tip!" },
+		{title: "item2: selected on init", selected: true },
+		{title: "Folder", folder: true, key: "id3",
 			children: [
-				{title: "Sub-item 4.1",
+				{title: "Sub-item 3.1",
 					children: [
-						{title: "Sub-item 4.1.1", key: "id4.1.1" },
-						{title: "Sub-item 4.1.2 (selected: true)", key: "id4.1.2", selected: true },
-						{title: "Sub-item 4.1.3 (selected: true, unselectable: true)", key: "id4.1.3",
-							selected: true, unselectable: true }
+						{title: "Sub-item 3.1.1", key: "id3.1.1" },
+						{title: "Sub-item 3.1.2", key: "id3.1.2" }
 					]
 				},
-				{title: "Sub-item 4.2",
+				{title: "Sub-item 3.2",
 					children: [
-						{title: "Sub-item 4.2.1", key: "id4.2.1" },
-						{title: "Sub-item 4.2.2", key: "id4.2.2" }
-					]
-				},
-				{title: "Sub-item 4.3",
-					children: [
-						{title: "Sub-item 4.3.1", key: "id4.3.1" },
-						{title: "Sub-item 4.3.2", key: "id4.3.2" }
+						{title: "Sub-item 3.2.1", key: "id3.2.1" },
+						{title: "Sub-item 3.2.2", key: "id3.2.2" }
 					]
 				}
 			]

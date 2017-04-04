@@ -1,3 +1,7 @@
+# 2.22.0-0 ext-select branch / Unreleased
+  * [Changed] #626 refactor the select behavior: 
+    [details](https://github.com/mar10/fancytree/wiki/SpecSelect)
+
 # 2.22.0-0 / Unreleased
   * [Added] New extension 'ext-fixed'
   * [Added] ext-dnd5 now part of standard distribution
