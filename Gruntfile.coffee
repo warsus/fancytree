@@ -194,6 +194,9 @@ module.exports = (grunt) ->
             # FTP upload the demo files (requires https://github.com/mar10/pyftpsync)
             cmd: "pyftpsync --progress upload . ftp://www.wwwendt.de/tech/fancytree --delete-unmatched --omit build,node_modules,.*,_*"
 #            cmd: "pyftpsync --progress upload . ftp://www.wwwendt.de/tech/fancytree --omit build,node_modules,.*,_*  -x"
+        upload_force:
+            # FTP upload the demo files (requires https://github.com/mar10/pyftpsync)
+            cmd: "pyftpsync --progress upload . ftp://www.wwwendt.de/tech/fancytree --delete-unmatched --omit build,node_modules,.*,_* --resolve=local --force"
 
     # htmllint:
     #     all: ["demo/**/*.html", "doc/**/*.html", "test/**/*.html"]
@@ -475,4 +478,9 @@ module.exports = (grunt) ->
   grunt.registerTask "upload", [
       "build"
       "exec:upload"
+      ]
+
+  grunt.registerTask "upload_force", [
+      "build"
+      "exec:upload_force"
       ]

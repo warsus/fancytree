@@ -2,16 +2,22 @@
   * [Changed] #626 refactor the select behavior: 
     [details](https://github.com/mar10/fancytree/wiki/SpecSelect)
 
-# 2.22.0-0 / Unreleased
-  * [Added] New extension 'ext-fixed'
+# 2.22.0 / Unreleased
   * [Added] ext-dnd5 now part of standard distribution
   * [Added] #693 ext-dnd(5): configurable drop marker offset
+  * [Added] #616 ext-wide: configurable left padding
+  * [Added] New method $.ui.fancytree.evalOption()
   * [Improved] #601 ext-filter: improve performance (don't render hidden nodes)
   * [Improved] ext-contextMenu: disable keyboard while popup is open and restore focus
+  * [Improved] #701 ext-hotkeys: Prevent default behavior on hot key combination
   * [Fixed] #680 ext-dnd5: top level nodes not draggable
   * [Fixed] #681 ext-table: exception when a lazy node has `children: []`
   * [Fixed] #699 ext-dnd5: Icon remains after dnd is cancelled
   * [Fixed] #702 $.ui.fancytree.getNode(jQuery)' for jQuery v3.x
+  * [Fixed] #712 When clicking in a scrolled tree for the first time, focus is not set properly
+  * [Fixed] #716 ext-wide: animation 'jumps' (jQuery UI 1.12)
+  * [Fixed] #717 expand/collapse shows displaced child nodes when scrolled (jQuery UI 1.12)
+  * Update demos to jQuery 3.2.1 / jQuery UI 1.12.1
 
 # 2.21.0 / 2017-01-15
   * [Added] New extension 'ext-dnd5' for native HTML5 drag'n'drop support
