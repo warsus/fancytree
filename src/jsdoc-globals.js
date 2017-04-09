@@ -31,6 +31,9 @@ var EventData = {};
  * @type {Object}
  *
  * @property {boolean} active (Initialization only, but will not be stored with the node.)
+ * @property {boolean} checkbox Pass `false` to remove checkbox for this node.<br>
+ *     Note that selection via the API or initialization data is still possible.<br>
+ *	   See also the global `tree.checkbox` option.
  * @property {NodeData[]} children Optional array of child nodes.<br>
  *     Note that for <i>lazy</i> nodes, a value of null or undefined is interpreted as
  *     <i>not yet loaded</i>; if an array is passed (even an empty one), the
@@ -42,8 +45,7 @@ var EventData = {};
  *     Note: use `node.add/remove/toggleClass()` to modify.
  * @property {boolean} focus (Initialization only, but will not be stored  with the node.)
  * @property {boolean} folder Folders have different default icons and honor the `clickFolderMode` option.
- * @property {boolean} hideCheckbox Pass `true` to remove checkbox for this node.<br>
- *     Note that selection via the API or initialization data is still possible.
+ * @property {boolean} <del>hideCheckbox</del>  @deprecated use `checkbox` instead.
  * @property {boolean|string} icon Define this node's icon.<br>
  *     undefined: Use global tree option of the same name<br>
  *     true: Use default icon, depending on `node.folder` and `node.expanded` status<br>
@@ -61,7 +63,13 @@ var EventData = {};
  * @property {string} title Node text (may contain HTML tags). Use `node.setTitle()` to modify.
  * @property {string} tooltip Will be added as `title` attribute, thus enabling a tooltip.<br>
  *	   See also the global `tree.tooltip` option.
- * @property {boolean} unselectable Prevent (de-)selection using mouse or keyboard.
+ * @property {boolean} unselectable Prevent (de-)selection using mouse or keyboard.<br>
+ *     Note: This node can still be (de)selected by status propagation in selectMode 3.
+ *     (Set `unselectableStatus` to prevent this.)
+ * @property {boolean} unselectableIgnore Ignore this node when calculating the `partsel`
+ *     status of parent nodes in selectMode 3 propagation.
+ * @property {boolean} unselectableStatus Use this as constant `selected` value 
+ *     (overriding selectMode 3 propagation).
  * @property {any} OTHER Attributes other than listed above will be copied to `node.data`.
  *
  */
@@ -109,8 +117,9 @@ var TreePatch = {};
  * @property {boolean} autoActivate Activate a node when focused with the keyboard (default: true)
  * @property {boolean} autoCollapse Automatically collapse all siblings, when a node is expanded (default: false).
  * @property {boolean} autoScroll Scroll node into visible area, when focused by keyboard (default: false).
- * @property {boolean} checkbox Display checkboxes to allow selection (default: false).<br>
- *     Note that selection via the API or initialization data is still possible.
+ * @property {boolean|function} checkbox Display checkboxes to allow selection (default: false).<br>
+ *     Note that selection via the API or initialization data is still possible.<br>
+ *     The 
  * @property {Integer} clickFolderMode Defines what happens, when the user click a folder node.<br>1:activate, 2:expand, 3:activate and expand, 4:activate/dblclick expands  (default: 4)
  * @property {Integer} debugLevel 0..2 (null: use global setting $.ui.fancytree.debugInfo)
  * @property {function} defaultKey callback(node) is called for new nodes without a key. Must return a new unique key. (default null: generates default keys like that: "_" + counter)
@@ -151,6 +160,9 @@ var TreePatch = {};
  *     function:  A callback(node)<br>
  *	   Note: If a node has the `node.tooltip` attribute set, this will take precedence.<br>
  *	   Note: If a separate tooltip widget is used, it may be more efficient to use that widget API instead, instead of duplicating tree markup. (<a href="http://api.jqueryui.com/tooltip/#option-content">For example jQuery UI Tooltip</a>.)
+ * @property {boolean|function} unselectable
+ * @property {boolean|function} unselectableIgnore
+ * @property {boolean|function} unselectableStatus
  */
 var FancytreeOptions = {};
 

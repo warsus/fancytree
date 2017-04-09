@@ -1,6 +1,10 @@
 # 2.22.0-0 ext-select branch / Unreleased
   * [Changed] #626 refactor the select behavior: 
     [details](https://github.com/mar10/fancytree/wiki/SpecSelect)
+  * CHANGED:
+    `hideCheckbox` option was removed. Use `checkbox: false` instead
+  * Dynamic options:
+    checkbox, unselectable, unselectableIgnore, unselectableStatus
 
 # 2.22.0 / Unreleased
   * [Added] ext-dnd5 now part of standard distribution

@@ -53,10 +53,11 @@ var i, attr,
 		221: "]", 222: "'"},
 	MOUSE_BUTTONS = { 0: "", 1: "left", 2: "middle", 3: "right" },
 	// Boolean attributes that can be set with equivalent class names in the LI tags
-	CLASS_ATTRS = "active expanded focus folder hideCheckbox lazy selected unselectable".split(" "),
+	// Note: v2.23: checkbox and hideCheckbox are *not* in this list
+	CLASS_ATTRS = "active expanded focus folder lazy selected unselectable unselectableIgnore".split(" "),
 	CLASS_ATTR_MAP = {},
 	// Top-level Fancytree node attributes, that can be set by dict
-	NODE_ATTRS = "expanded extraClasses folder hideCheckbox icon key lazy refKey selected statusNodeType title tooltip unselectable unselectableIgnore unselectableStatus".split(" "),
+	NODE_ATTRS = "checkbox expanded extraClasses folder icon key lazy refKey selected statusNodeType title tooltip unselectable unselectableIgnore unselectableStatus".split(" "),
 	NODE_ATTR_MAP = {},
 	// Mapping of lowercase -> real name (because HTML5 data-... attribute only supports lowercase)
 	NODE_ATTR_LOWERCASE_MAP = {},
@@ -692,10 +693,13 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	},
 	/* Apply selection state (internal use only) */
 	_changeSelectStatusAttrs: function(state) {
-		var changed = false;
+		var changed = false,
+			opts = this.tree.options,
+			unselectable = FT.evalOption("unselectable", this, this, opts, false),
+			unselectableStatus = FT.evalOption("unselectableStatus", this, this, opts, undefined);
 
-		if( this.unselectable && this.unselectableStatus != null ) {
-			state = this.unselectableStatus;
+		if( unselectable && unselectableStatus != null ) {
+			state = unselectableStatus;
 		}
 		switch(state){
 		case false:
@@ -743,13 +747,15 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	 * children have been modified using the API.
 	 */
 	fixSelection3FromEndNodes: function(callOpts) {
+		var opts = this.tree.options;
+
 //		this.debug("fixSelection3FromEndNodes()");
-		_assert(this.tree.options.selectMode === 3, "expected selectMode 3");
+		_assert(opts.selectMode === 3, "expected selectMode 3");
 
 		// Visit all end nodes and adjust their parent's `selected` and `partsel`
 		// attributes. Return selection state true, false, or undefined.
 		function _walk(node){
-			var i, l, child, s, state, allSelected, someSelected,
+			var i, l, child, s, state, allSelected, someSelected, unselIgnore, unselState,
 				children = node.children;
 
 			if( children && children.length ){
@@ -761,7 +767,9 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 					child = children[i];
 					// the selection state of a node is not relevant; we need the end-nodes
 					s = _walk(child);
-					if( !child.unselectableIgnore ) {
+					// if( !child.unselectableIgnore ) {
+					unselIgnore = FT.evalOption("unselectableIgnore", child, child, opts, false);
+					if( !unselIgnore ) {
 						if( s !== false ) {
 							someSelected = true;
 						}
@@ -773,8 +781,8 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 				state = allSelected ? true : (someSelected ? undefined : false);
 			}else{
 				// This is an end-node: simply report the status
-				state = ( node.unselectableStatus == null ) ? !!node.selected
-						: !!node.unselectableStatus;
+				unselState = FT.evalOption("unselectableStatus", node, node, opts, undefined);
+				state = ( unselState == null ) ? !!node.selected : !!unselState;
 			}
 			node._changeSelectStatusAttrs(state);
 			return state;
@@ -783,16 +791,17 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 
 		// Update parent's state
 		this.visitParents(function(node){
-			var i, l, child, state,
+			var i, l, child, state, unselIgnore, unselState,
 				children = node.children,
 				allSelected = true,
 				someSelected = false;
 
 			for( i=0, l=children.length; i<l; i++ ){
 				child = children[i];
-				if( !child.unselectableIgnore ) {
-					state = ( child.unselectableStatus == null ) ? !!child.selected
-							: !!child.unselectableStatus;
+				unselIgnore = FT.evalOption("unselectableIgnore", child, child, opts, false);
+				if( !unselIgnore ) {
+					unselState = FT.evalOption("unselectableStatus", child,  child, opts, undefined);
+					state = ( unselState == null ) ? !!child.selected : !!unselState;
 					// When fixing the parents, we trust the sibling status (i.e.
 					// we don't recurse)
 					if( state || child.partsel ) {
@@ -3524,7 +3533,7 @@ $.extend(Fancytree.prototype,
 	 */
 	nodeRenderTitle: function(ctx, title) {
 		// set node connector images, links and text
-		var id, icon, nodeTitle, role, tabindex, tooltip,
+		var checkbox, id, icon, nodeTitle, role, tabindex, tooltip,
 			node = ctx.node,
 			tree = ctx.tree,
 			opts = ctx.options,
@@ -3561,7 +3570,10 @@ $.extend(Fancytree.prototype,
 			}
 		}
 		// Checkbox mode
-		if( opts.checkbox && node.hideCheckbox !== true && !node.isStatusNode() ) {
+		// if( opts.checkbox && node.hideCheckbox !== true && !node.isStatusNode() ) {
+		checkbox = FT.evalOption("checkbox", node, node, opts, false);
+
+		if( checkbox && !node.isStatusNode() ) {
 			if(aria){
 				ares.push("<span role='checkbox' class='fancytree-checkbox'></span>");
 			}else{
@@ -3688,7 +3700,7 @@ $.extend(Fancytree.prototype,
 			// if(aria){
 			// 	$ariaElem.attr("aria-activedescendant", true);
 			// }
-		}else if(aria){
+		// }else if(aria){
 			// $ariaElem.removeAttr("aria-activedescendant");
 		}
 		if( node.expanded ){
@@ -3722,7 +3734,7 @@ $.extend(Fancytree.prototype,
 		if( node.partsel ){
 			cnList.push(cn.partsel);
 		}
-		if( node.unselectable ){
+		if( FT.evalOption("unselectable", node, node, opts, false) ){
 			cnList.push(cn.unselectable);
 		}
 		if( node._isLoading ){
@@ -4063,7 +4075,7 @@ $.extend(Fancytree.prototype,
 
 		// Cannot (de)select unselectable nodes directly (only by propagation or
 		// by setting the `.selected` property)
-		if( node.unselectable ){
+		if( FT.evalOption("unselectable", node, node, opts, false) ){
 			return;
 		}
 
@@ -4215,8 +4227,8 @@ $.extend(Fancytree.prototype,
 		// setSelected(true) was called before, due to `unselectable` children.
 		// In this case, we now toggle as `setSelected(false)`
 		if( node.partsel && !node.selected && node._lastSelectIntent === true ) {
-			node.selected = true;
 			flag = false;
+			node.selected = true;  // so it is not considered 'nothing to do'
 		}
 		node._lastSelectIntent = flag;
 		return this.nodeSetSelected(ctx, flag);
@@ -5130,6 +5142,10 @@ $.extend($.ui.fancytree,
 			tmp = $li.attr("id");
 			if( tmp ){
 				d.key = tmp;
+			}
+			// Translate hideCheckbox -> checkbox:false
+			if( $li.attr("hideCheckbox") ){
+				d.checkbox = false;
 			}
 			// Add <li data-NAME='...'> as node.data.NAME
 			allData = _getElementDataAsDict($li);
