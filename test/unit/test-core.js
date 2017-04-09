@@ -1061,12 +1061,13 @@ QUnit.module("Selection mode 3");
 
 QUnit.test("load behavior", function(assert) {
 	tools.setup(assert);
-	assert.expect(10);
+	assert.expect(26);
 
 	var tree;
 
 	$("#tree").fancytree({
 		selectMode: 3,
+		checkbox: true,
 		source: [
 			{title: "n1", children: [
 				{title: "n1.1", selected: true},
@@ -1074,15 +1075,26 @@ QUnit.test("load behavior", function(assert) {
 				{title: "n1.3", selected: null}
 			]},
 			{title: "n2 (all selected)", children: [
-				{title: "n2.1", selected: true,  unslectable: true, unselectableStatus: true},
-				// {title: "n2.2", selected: false, unslectable: true, unselectableStatus: true},
-				// {title: "n2.3", selected: null,  unslectable: true, unselectableStatus: true},
-				{title: "n2.4", selected: true,  unslectable: true, unselectableStatus: false},
-				// {title: "n2.5", selected: false, unslectable: true, unselectableStatus: false},
-				// {title: "n2.6", selected: null,  unslectable: true, unselectableStatus: false}
-				{title: "n2.7", selected: true,  unslectable: true, unselectableStatus: null}
-				// {title: "n2.8", selected: false, unslectable: true, unselectableStatus: null},
-				// {title: "n2.9", selected: null,  unslectable: true, unselectableStatus: null}
+				{title: "n2.1", selected: true, unselectable: true, unselectableStatus: true},
+				{title: "n2.2", selected: true, unselectable: true, unselectableStatus: false},
+				{title: "n2.3", selected: true, unselectable: true, unselectableStatus: null}
+			]},
+			{title: "n3", children: [
+				{title: "n3.1", children: [
+					{title: "n3.1.1 (unselectable)", unselectable: true},
+					{title: "n3.1.2 (unselectable)", unselectable: true},
+					{title: "n3.1.3"}
+				]},
+				{title: "n3.2", children: [
+					{title: "n3.2.1 (unselectableStatus: true)", unselectable: true, unselectableStatus: true},
+					{title: "n3.2.2 (unselectableStatus: false)", unselectable: true, unselectableStatus: false},
+					{title: "n3.2.3"}
+				]},
+				{title: "n3.3", children: [
+					{title: "n3.3.1 (unselectableStatus: true, unselectableIgnore)", unselectable: true, unselectableStatus: true,  unselectableIgnore: true},
+					{title: "n3.3.2 (unselectableStatus: false, unselectableIgnore)", unselectable: true, unselectableStatus: false, unselectableIgnore: true},
+					{title: "n3.3.3"}
+				]}
 			]}
 		],
 		init: function(event, data) {
@@ -1091,12 +1103,6 @@ QUnit.test("load behavior", function(assert) {
 				n.key = n.title.split(" ")[0];
 			});
 		},
-		// postProcess: function(event, data) {
-		// 	alert(data.result)
-		// 	$.each(data.result, function(i, n) {
-		// 		n.title += "!";
-		// 	});
-		// },
 		generateIds: true
 	});
 	tree = $.ui.fancytree.getTree();
@@ -1119,20 +1125,79 @@ QUnit.test("load behavior", function(assert) {
 
 	assert.equal(tools.getNode("n2.1").selected, true,
 		"propagate down `select` (unselectable status: true)");
-	assert.equal(tools.getNode("n2.4").selected, false,
+	assert.equal(tools.getNode("n2.2").selected, false,
 		"propagate down `select` (unselectable status: false)");
-	assert.equal(tools.getNode("n2.7").selected, true,
+	assert.equal(tools.getNode("n2.3").selected, true,
 		"propagate down `select` (unselectable status: undefined)");
 
 	tools.getNode("n2").setSelected(false);
 
 	assert.equal(tools.getNode("n2.1").selected, true,
 		"propagate down `deselect` (unselectable status: true)");
-	assert.equal(tools.getNode("n2.4").selected, false,
+	assert.equal(tools.getNode("n2.2").selected, false,
 		"propagate down `deselect` (unselectable status: false)");
-	assert.equal(tools.getNode("n2.7").selected, false,
+	assert.equal(tools.getNode("n2.3").selected, false,
 		"propagate down `deselect` (unselectable status: undefined)");
 
+	// Check upward propagation
+
+	tools.getNode("n3").setSelected(true);
+
+	assert.equal(tools.getNode("n3.1").isSelected(), true,
+		"propagate down `select` (unselectable): parent selected");
+	assert.equal(tools.getNode("n3.1.1").isSelected(), true,
+		"propagate down `select` (unselectable): selected by api");
+
+	assert.equal(tools.getNode("n3.2").isPartsel(), true,
+		"propagate down `select` (unselectable status: true&false): parent partsel");
+
+	assert.equal(tools.getNode("n3.3").isSelected(), true,
+		"propagate down `select` (unselectable status: true&false, ignore): parent selected");
+	assert.equal(tools.getNode("n3.3.2").isSelected(), false,
+		"propagate down `select` (unselectable status: false): not selected");
+
+	tools.getNode("n3").setSelected(false);
+
+	assert.equal(tools.getNode("n3.1").isPartsel(), false,
+		"propagate down `deselect` (unselectable): parent not partsel");
+	assert.equal(tools.getNode("n3.1.1").isSelected(), false,
+		"propagate down `deselect` (unselectable): deselected by api");
+
+	assert.equal(tools.getNode("n3.2").isPartsel(), true,
+		"propagate down `deselect` (unselectable status: true&false): parent partsel");
+	assert.equal(tools.getNode("n3.2.1").isSelected(), true,
+		"propagate down `deselect` (unselectable status: true): not deselected");
+
+	assert.equal(tools.getNode("n3.3").isPartsel(), false,
+		"propagate down `deselect` (unselectable status: true&false, ignore): parent not partsel");
+	assert.equal(tools.getNode("n3.3").isSelected(), false,
+		"propagate down `deselect` (unselectable status: true&false, ignore): parent not selected");
+	assert.equal(tools.getNode("n3.3.1").isSelected(), true,
+		"propagate down `deselect` (unselectable status: true): not deselected");
+
+	tools.getNode("n3.2.3").setSelected(true);
+
+	assert.equal(tools.getNode("n3.2").isPartsel(), true,
+		"propagate up `select`: parent partsel, because of deselected sibling");
+
+	tools.getNode("n3.2.3").setSelected(false);
+
+	assert.equal(tools.getNode("n3.2").isPartsel(), true,
+		"propagate up `deselect`: parent partsel, because of selected sibling");
+
+	tools.getNode("n3.3.3").setSelected(true);
+
+	assert.equal(tools.getNode("n3.3").isSelected(), true,
+		"propagate up `select`: parent selected, because of ignored siblings");
+
+	tools.getNode("n3.3.3").setSelected(false);
+
+	assert.equal(tools.getNode("n3.3").isSelected(), false,
+		"propagate up `deselect`: parent deselected, because of ignored siblings");
+
+	// tree.visit(function(n){
+	// 	n.setExpanded();
+	// });
 });
 
 

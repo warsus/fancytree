@@ -75,7 +75,24 @@
 		$("#tree1").fancytree({
 			checkbox: true,
 			selectMode: 1,
-			source: SOURCE,
+			source: [
+				{title: "n1 (checkbox: false)", expanded: true, checkbox: false, children: [
+					{title: "n1.1"},
+					{title: "n1.2 (selected)", selected: true},
+					{title: "n1.3"}
+				]},
+				{title: "n2", expanded: true, checkbox: false, children: [
+					{title: "n2.1"},
+					{title: "n2.2"},
+					{title: "n2.3"}
+				]}
+				],
+			init: function(event, data) {
+				// Set key from first part of title (just for this demo)
+				data.tree.visit(function(n) {
+					n.key = n.title.split(" ")[0];
+				});
+			},
 			activate: function(event, data) {
 				$("#echoActive1").text(data.node.title);
 			},
@@ -98,7 +115,24 @@
 		$("#tree2").fancytree({
 			checkbox: true,
 			selectMode: 2,
-			source: SOURCE,
+			source: [
+				{title: "n1 (selected)", expanded: true, selected: true, children: [
+					{title: "n1.1"},
+					{title: "n1.2 (selected)", selected: true},
+					{title: "n1.3"}
+				]},
+				{title: "n2  (checkbox: false)", expanded: true, checkbox: false, children: [
+					{title: "n2.1"},
+					{title: "n2.2"},
+					{title: "n2.3"}
+				]}
+				],
+			init: function(event, data) {
+				// Set key from first part of title (just for this demo)
+				data.tree.visit(function(n) {
+					n.key = n.title.split(" ")[0];
+				});
+			},
 			select: function(event, data) {
 				// Display list of selected nodes
 				var selNodes = data.tree.getSelectedNodes();
@@ -129,7 +163,42 @@
 		$("#tree3").fancytree({
 			checkbox: true,
 			selectMode: 3,
-			source: SOURCE,
+			source: [
+				{title: "n1", expanded: true, children: [
+					{title: "n1.1 (selected)"},
+					{title: "n1.2"},
+					{title: "n1.3"}
+				]},
+				{title: "n2", expanded: true, children: [
+					{title: "n2.1 (selected)", selected: true},
+					{title: "n2.2", selected: false},
+					{title: "n2.3", selected: null}
+				]},
+				{title: "n3", expanded: true, children: [
+					{title: "n3.1", expanded: true, children: [
+						{title: "n3.1.1 (unselectable)", unselectable: true},
+						{title: "n3.1.2 (unselectable)", unselectable: true},
+						{title: "n3.1.3"}
+					]},
+					{title: "n3.2", expanded: true, children: [
+						{title: "n3.2.1 (unselectableStatus: true)", unselectable: true, unselectableStatus: true},
+						{title: "n3.2.2 (unselectableStatus: false)", unselectable: true, unselectableStatus: false},
+						{title: "n3.2.3"}
+					]},
+					{title: "n3.3", expanded: true, children: [
+						{title: "n3.3.1 (unselectableStatus: true, unselectableIgnore)", unselectable: true, unselectableStatus: true,  unselectableIgnore: true},
+						{title: "n3.3.2 (unselectableStatus: false, unselectableIgnore)", unselectable: true, unselectableStatus: false, unselectableIgnore: true},
+						{title: "n3.3.3"}
+					]}
+				]}
+				],
+			init: function(event, data) {
+				// Set key from first part of title (just for this demo)
+				data.tree.visit(function(n) {
+					n.key = n.title.split(" ")[0];
+					n.expanded = true;
+				});
+			},
 			lazyLoad: function(event, ctx) {
 				ctx.result = {url: "ajax-sub2.json", debugDelay: 1000};
 			},
@@ -166,7 +235,7 @@
 			cookieId: "fancytree-Cb3",
 			idPrefix: "fancytree-Cb3-"
 		});
-
+/*
 		$("#tree4").fancytree({
 			checkbox: false,
 			selectMode: 2,
@@ -223,6 +292,7 @@
 			});
 			return false;
 		});
+*/
 	});
 </script>
 </head>
@@ -285,7 +355,7 @@
 
 
 	<!-- Tree #4 -->
-
+<!--
 	<p class="description">
 		This tree has selectMode 2 (multi-selection) enabled, but <b>no checkboxes</b>.<br>
 		A single-click handler selects the node.<br>
@@ -295,7 +365,7 @@
 	</p>
 	<div id="tree4"></div>
 	<div>Selected keys: <span id="echoSelection4">-</span></div>
-
+-->
 
 	<!-- Start_Exclude: This block is not part of the sample code -->
 	<hr>

@@ -56,7 +56,7 @@ var i, attr,
 	CLASS_ATTRS = "active expanded focus folder hideCheckbox lazy selected unselectable".split(" "),
 	CLASS_ATTR_MAP = {},
 	// Top-level Fancytree node attributes, that can be set by dict
-	NODE_ATTRS = "expanded extraClasses folder hideCheckbox icon key lazy refKey selected statusNodeType title tooltip unselectable unselectableStatus".split(" "),
+	NODE_ATTRS = "expanded extraClasses folder hideCheckbox icon key lazy refKey selected statusNodeType title tooltip unselectable unselectableIgnore unselectableStatus".split(" "),
 	NODE_ATTR_MAP = {},
 	// Mapping of lowercase -> real name (because HTML5 data-... attribute only supports lowercase)
 	NODE_ATTR_LOWERCASE_MAP = {},
@@ -694,6 +694,9 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	_changeSelectStatusAttrs: function(state) {
 		var changed = false;
 
+		if( this.unselectable && this.unselectableStatus != null ) {
+			state = this.unselectableStatus;
+		}
 		switch(state){
 		case false:
 			changed = ( this.selected || this.partsel );
@@ -723,7 +726,7 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	 * Fix selection status, after this node was (de)selected in multi-hier mode.
 	 * This includes (de)selecting all children.
 	 */
-	fixSelection3AfterClick: function() {
+	fixSelection3AfterClick: function(callOpts) {
 		var flag = this.isSelected();
 
 //		this.debug("fixSelection3AfterClick()");
@@ -731,21 +734,7 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 		this.visit(function(node){
 			node._changeSelectStatusAttrs(flag);
 		});
-		this.fixSelection3FromEndNodes();
-	},
-	/**
-	 * Fix selection status, after this node's children where loaded.
-	 * Child nodes that have `.selected` definedThis includes (de)selecting all children.
-	 */
-	fixSelection3AfterLoad: function() {
-		var flag = this.isSelected();
-
-//		this.debug("fixSelection3AfterClick()");
-
-		this.visit(function(node){
-			node._changeSelectStatusAttrs(flag);
-		});
-		this.fixSelection3FromEndNodes();
+		this.fixSelection3FromEndNodes(callOpts);
 	},
 	/**
 	 * Fix selection status for multi-hier mode.
@@ -753,14 +742,14 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	 * Should be called after this node has loaded new children or after
 	 * children have been modified using the API.
 	 */
-	fixSelection3FromEndNodes: function() {
+	fixSelection3FromEndNodes: function(callOpts) {
 //		this.debug("fixSelection3FromEndNodes()");
 		_assert(this.tree.options.selectMode === 3, "expected selectMode 3");
 
 		// Visit all end nodes and adjust their parent's `selected` and `partsel`
 		// attributes. Return selection state true, false, or undefined.
 		function _walk(node){
-			var i, l, child, s, state, allSelected,someSelected,
+			var i, l, child, s, state, allSelected, someSelected,
 				children = node.children;
 
 			if( children && children.length ){
@@ -772,18 +761,20 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 					child = children[i];
 					// the selection state of a node is not relevant; we need the end-nodes
 					s = _walk(child);
-					if( s !== false ) {
-						someSelected = true;
-					}
-					if( s !== true ) {
-						allSelected = false;
+					if( !child.unselectableIgnore ) {
+						if( s !== false ) {
+							someSelected = true;
+						}
+						if( s !== true ) {
+							allSelected = false;
+						}
 					}
 				}
 				state = allSelected ? true : (someSelected ? undefined : false);
 			}else{
 				// This is an end-node: simply report the status
-//				state = ( node.unselectable ) ? undefined : !!node.selected;
-				state = !!node.selected;
+				state = ( node.unselectableStatus == null ) ? !!node.selected
+						: !!node.unselectableStatus;
 			}
 			node._changeSelectStatusAttrs(state);
 			return state;
@@ -799,13 +790,17 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 
 			for( i=0, l=children.length; i<l; i++ ){
 				child = children[i];
-				// When fixing the parents, we trust the sibling status (i.e.
-				// we don't recurse)
-				if( child.selected || child.partsel ) {
-					someSelected = true;
-				}
-				if( !child.unselectable && !child.selected ) {
-					allSelected = false;
+				if( !child.unselectableIgnore ) {
+					state = ( child.unselectableStatus == null ) ? !!child.selected
+							: !!child.unselectableStatus;
+					// When fixing the parents, we trust the sibling status (i.e.
+					// we don't recurse)
+					if( state || child.partsel ) {
+						someSelected = true;
+					}
+					if( !state ) {
+						allSelected = false;
+					}
 				}
 			}
 			state = allSelected ? true : (someSelected ? undefined : false);
@@ -1116,6 +1111,13 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 	 */
 	isRoot: function() {
 		return this.isRootNode();
+	},
+	/** Return true if node is partially selected (tri-state).
+	 * @returns {boolean}
+	 * @since 2.23
+	 */
+	isPartsel: function() {
+		return !this.selected && !!this.partsel;
 	},
 	/** (experimental) Return true if this is partially loaded.
 	 * @returns {boolean}
@@ -1928,11 +1930,11 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 		// this.info("-> toggleClass('" + value + "', " + flag + "): '" + this.extraClasses + "'");
 		return wasAdded;
 	},
-	/** Flip expanded status.  */
+	/** Flip expanded status. */
 	toggleExpanded: function(){
 		return this.tree._callHook("nodeToggleExpanded", this);
 	},
-	/** Flip selection status.  */
+	/** Flip selection status. */
 	toggleSelected: function(){
 		return this.tree._callHook("nodeToggleSelected", this);
 	},
@@ -4044,38 +4046,60 @@ $.extend(Fancytree.prototype,
 	 * @param {EventData} ctx
 	 * @param {boolean} [flag=true]
 	 * @param {object} [opts] additional options. Defaults to {noEvents: false,
-	 *     propagateDown: null, propagateUp: null, }
+	 *     propagateDown: null, propagateUp: null, 
+	 *     callback: null,
+	 *     }
+	 * @returns {boolean} previous status
 	 */
 	nodeSetSelected: function(ctx, flag, callOpts) {
 		var node = ctx.node,
 			tree = ctx.tree,
 			opts = ctx.options;
+
 		// flag defaults to true
 		flag = (flag !== false);
 
 		// node.debug("nodeSetSelected(" + flag + ")", ctx);
-		if( node.unselectable){
+
+		// Cannot (de)select unselectable nodes directly (only by propagation or
+		// by setting the `.selected` property)
+		if( node.unselectable ){
 			return;
 		}
-		// TODO: !!node.expanded is nicer, but doesn't pass jshint
-		// https://github.com/jshint/jshint/issues/455
-//        if( !!node.expanded === !!flag){
-		if((node.selected && flag) || (!node.selected && !flag)){
-			return !!node.selected;
-		}else if ( this._triggerNodeEvent("beforeSelect", node, ctx.originalEvent) === false ){
+
+		// Remember the user's intent, in case down -> up propagation prevents
+		// applying it to node.selected
+		node._lastSelectIntent = flag;
+
+		// Nothing to do?
+		/*jshint -W018 */  // Confusing use of '!'
+		if( !!node.selected === flag ){
+			if( opts.selectMode === 3 && node.partsel && !flag ){
+				// If propagation prevented selecting this node last time, we still
+				// want to allow to apply setSelected(false) now
+			}else{
+				return flag;
+			}
+		}
+		/*jshint +W018 */
+
+		if ( this._triggerNodeEvent("beforeSelect", node, ctx.originalEvent) === false ){
 			return !!node.selected;
 		}
 		if(flag && opts.selectMode === 1){
-			// single selection mode
+			// single selection mode (we don't uncheck all tree nodes, for performance reasons)
 			if(tree.lastSelectedNode){
 				tree.lastSelectedNode.setSelected(false);
 			}
-		}else if(opts.selectMode === 3){
-			// multi.hier selection mode
 			node.selected = flag;
-			node.fixSelection3AfterClick();
+		}else if(opts.selectMode === 3){
+			// multi-hierarchical selection mode
+			node.selected = flag;
+			node.fixSelection3AfterClick(callOpts);
+		}else{
+			// default: selectMode: 2, multi selection mode
+			node.selected = flag;
 		}
-		node.selected = flag;
 		this.nodeRenderStatus(ctx);
 		tree.lastSelectedNode = flag ? node : null;
 		tree._triggerNodeEvent("select", ctx);
@@ -4184,7 +4208,18 @@ $.extend(Fancytree.prototype,
 	 * @param {EventData} ctx
 	 */
 	nodeToggleSelected: function(ctx) {
-		return this.nodeSetSelected(ctx, !ctx.node.selected);
+		var node = ctx.node,
+			flag = !node.selected;
+
+		// In selectMode: 3 this node may be unselected+partsel, even if 
+		// setSelected(true) was called before, due to `unselectable` children.
+		// In this case, we now toggle as `setSelected(false)`
+		if( node.partsel && !node.selected && node._lastSelectIntent === true ) {
+			node.selected = true;
+			flag = false;
+		}
+		node._lastSelectIntent = flag;
+		return this.nodeSetSelected(ctx, flag);
 	},
 	/** Remove all nodes.
 	 * @param {EventData} ctx
