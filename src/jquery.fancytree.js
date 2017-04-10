@@ -54,10 +54,10 @@ var i, attr,
 	MOUSE_BUTTONS = { 0: "", 1: "left", 2: "middle", 3: "right" },
 	// Boolean attributes that can be set with equivalent class names in the LI tags
 	// Note: v2.23: checkbox and hideCheckbox are *not* in this list
-	CLASS_ATTRS = "active expanded focus folder lazy selected unselectable unselectableIgnore".split(" "),
+	CLASS_ATTRS = "active expanded focus folder lazy radiogroup selected unselectable unselectableIgnore".split(" "),
 	CLASS_ATTR_MAP = {},
 	// Top-level Fancytree node attributes, that can be set by dict
-	NODE_ATTRS = "checkbox expanded extraClasses folder icon key lazy refKey selected statusNodeType title tooltip unselectable unselectableIgnore unselectableStatus".split(" "),
+	NODE_ATTRS = "checkbox expanded extraClasses folder icon key lazy radiogroup refKey selected statusNodeType title tooltip unselectable unselectableIgnore unselectableStatus".split(" "),
 	NODE_ATTR_MAP = {},
 	// Mapping of lowercase -> real name (because HTML5 data-... attribute only supports lowercase)
 	NODE_ATTR_LOWERCASE_MAP = {},
@@ -321,6 +321,13 @@ function FancytreeNode(parent, obj){
 		name = NODE_ATTRS[i];
 		this[name] = obj[name];
 	}
+	// unselectableIgnore and unselectableStatus imply unselectable
+	if( this.unselectableIgnore != null || this.unselectableStatus != null ) {
+		this.unselectable = true;
+	}
+	if( obj.hideCheckbox ) {
+		$.error("'hideCheckbox' node option was removed in v2.23.0: use 'checkbox: false'");
+	}
 	// node.data += obj.data
 	if(obj.data){
 		$.extend(this.data, obj.data);
@@ -356,6 +363,7 @@ function FancytreeNode(parent, obj){
 		this.tree.lastSelectedNode = this;
 	}
 	// TODO: handle obj.focus = true
+
 	// Create child nodes
 	cl = obj.children;
 	if( cl ){
@@ -2084,6 +2092,29 @@ FancytreeNode.prototype = /** @lends FancytreeNode# */{
 		}
 		return true;
 	},
+	/** Call fn(node) for all sibling nodes.<br>
+	 * Stop iteration, if fn() returns false.<br>
+	 * Return false if iteration was stopped.
+	 *
+	 * @param {function} fn the callback function.
+	 *     Return false to stop iteration.
+	 * @param {boolean} [includeSelf=false]
+	 * @returns {boolean}
+	 */
+	visitSiblings: function(fn, includeSelf) {
+		var i, l, n,
+			ac = this.parent.children;
+
+		for (i=0, l=ac.length; i<l; i++) {
+			n = ac[i];
+			if ( includeSelf || n !== this ){
+				if( fn(n) === false ) {
+					return false;
+				}
+			}
+		}
+		return true;
+	},
 	/** Write warning to browser console (prepending node info)
 	 *
 	 * @param {*} msg string or object or array of such
@@ -3533,7 +3564,7 @@ $.extend(Fancytree.prototype,
 	 */
 	nodeRenderTitle: function(ctx, title) {
 		// set node connector images, links and text
-		var checkbox, id, icon, nodeTitle, role, tabindex, tooltip,
+		var checkbox, className, id, icon, nodeTitle, role, tabindex, tooltip,
 			node = ctx.node,
 			tree = ctx.tree,
 			opts = ctx.options,
@@ -3550,35 +3581,29 @@ $.extend(Fancytree.prototype,
 			return;
 		}
 		// Connector (expanded, expandable or simple)
+		role = aria ? " role='button'" : "";
 		if( level < opts.minExpandLevel ) {
 			if( !node.lazy ) {
 				node.expanded = true;
 			}
 			if(level > 1){
-				if(aria){
-					ares.push("<span role='button' class='fancytree-expander fancytree-expander-fixed'></span>");
-				}else{
-					ares.push("<span class='fancytree-expander fancytree-expander-fixed''></span>");
-				}
+				ares.push("<span " + role + " class='fancytree-expander fancytree-expander-fixed'></span>");
 			}
 			// .. else (i.e. for root level) skip expander/connector alltogether
 		} else {
-			if(aria){
-				ares.push("<span role='button' class='fancytree-expander'></span>");
-			}else{
-				ares.push("<span class='fancytree-expander'></span>");
-			}
+			ares.push("<span " + role + " class='fancytree-expander'></span>");
 		}
 		// Checkbox mode
 		// if( opts.checkbox && node.hideCheckbox !== true && !node.isStatusNode() ) {
 		checkbox = FT.evalOption("checkbox", node, node, opts, false);
 
 		if( checkbox && !node.isStatusNode() ) {
-			if(aria){
-				ares.push("<span role='checkbox' class='fancytree-checkbox'></span>");
-			}else{
-				ares.push("<span class='fancytree-checkbox'></span>");
+			role = aria ? " role='checkbox'" : "";
+			className = "fancytree-checkbox";
+			if( checkbox === "radio" || (node.parent && node.parent.radiogroup) ) {
+				className += " fancytree-radio";
 			}
+			ares.push("<span " + role + " class='" + className + "'></span>");
 		}
 		// Folder or doctype icon
 		if( node.data.iconClass !== undefined ) {  // 2015-11-16
@@ -4110,12 +4135,16 @@ $.extend(Fancytree.prototype,
 				tree.lastSelectedNode.setSelected(false);
 			}
 			node.selected = flag;
-		}else if(opts.selectMode === 3){
+		}else if(opts.selectMode === 3 && !node.parent.radiogroup && !node.radiogroup){
 			// multi-hierarchical selection mode
 			node.selected = flag;
 			node.fixSelection3AfterClick(callOpts);
+		}else if(node.parent.radiogroup){
+			node.visitSiblings(function(n){
+				n._changeSelectStatusAttrs(flag && n === node);
+			}, true);
 		}else{
-			// default: selectMode: 2, multi selection mode
+			// default: selectMode: 2, multi selection mode			
 			node.selected = flag;
 		}
 		this.nodeRenderStatus(ctx);
@@ -4513,6 +4542,8 @@ $.widget("ui.fancytree",
 			focused: "fancytree-focused",
 			partload: "fancytree-partload",
 			partsel: "fancytree-partsel",
+			radio: "fancytree-radio",
+			// radiogroup: "fancytree-radiogroup",
 			unselectable: "fancytree-unselectable",
 			lastsib: "fancytree-lastsib",
 			loading: "fancytree-loading",
@@ -4879,7 +4910,8 @@ $.extend($.ui.fancytree,
 			res.type = "title";
 		}else if( /\bfancytree-expander\b/.test(tcn) ){
 			res.type = (res.node.hasChildren() === false ? "prefix" : "expander");
-		}else if( /\bfancytree-checkbox\b/.test(tcn) || /\bfancytree-radio\b/.test(tcn) ){
+		// }else if( /\bfancytree-checkbox\b/.test(tcn) || /\bfancytree-radio\b/.test(tcn) ){
+		}else if( /\bfancytree-checkbox\b/.test(tcn) ){
 			res.type = "checkbox";
 		}else if( /\bfancytree-icon\b/.test(tcn) ){
 			res.type = "icon";

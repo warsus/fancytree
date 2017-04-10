@@ -31,9 +31,15 @@ var EventData = {};
  * @type {Object}
  *
  * @property {boolean} active (Initialization only, but will not be stored with the node.)
- * @property {boolean} checkbox Pass `false` to remove checkbox for this node.<br>
- *     Note that selection via the API or initialization data is still possible.<br>
- *	   See also the global `tree.checkbox` option.
+ * @property {boolean|string} checkbox Pass `false` to remove checkbox for this node.<br>
+ *     Note that selection via the API or initialization data is still possible, even 
+ *     if no checkbox is displayed.<br>
+ *     undefined: Use global tree option of the same name<br>
+ *     true: display a checkbox<br>
+ *     false: hide checkbox<br>
+ *     "radio": display a radio button (this does not have any effect on the selection behavior)<br>
+ *     This is a <a href="https://github.com/mar10/fancytree/wiki#dynamic-options">Dynamic Option</a>:
+ *	   see also the global tree option of the same name.
  * @property {NodeData[]} children Optional array of child nodes.<br>
  *     Note that for <i>lazy</i> nodes, a value of null or undefined is interpreted as
  *     <i>not yet loaded</i>; if an array is passed (even an empty one), the
@@ -53,7 +59,8 @@ var EventData = {};
  *     String: A string value that contains a '/' or a '.' is used as `src` attribute for a &lt;img> tag.
  *     (See also the global `imagePath` option.)<br>
  *     Any other string value is used to generate custom tags, e.g. for "ui-icon ui-icon-heart":<br>
- *     &lt;span class="fancytree-custom-icon ui-icon ui-icon-heart" />.
+ *     &lt;span class="fancytree-custom-icon ui-icon ui-icon-heart" />.<br>
+ *     See also <a href="https://github.com/mar10/fancytree/wiki#dynamic-options">dynamic options</a>.<br>
  * @property {string} <del>iconclass</del> @deprecated use `icon` instead.
  * @property {string} key Unique key for this node (auto-generated if omitted).
  * @property {boolean} lazy Lazy folders call the `lazyLoad` on first expand to load their children.
@@ -67,9 +74,11 @@ var EventData = {};
  *     Note: This node can still be (de)selected by status propagation in selectMode 3.
  *     (Set `unselectableStatus` to prevent this.)
  * @property {boolean} unselectableIgnore Ignore this node when calculating the `partsel`
- *     status of parent nodes in selectMode 3 propagation.
+ *     status of parent nodes in selectMode 3 propagation.<br>
+ *     If defined, `unselectable: true` is implied.
  * @property {boolean} unselectableStatus Use this as constant `selected` value 
- *     (overriding selectMode 3 propagation).
+ *     (overriding selectMode 3 propagation).<br>
+ *     If defined, `unselectable: true` is implied.
  * @property {any} OTHER Attributes other than listed above will be copied to `node.data`.
  *
  */
@@ -117,9 +126,13 @@ var TreePatch = {};
  * @property {boolean} autoActivate Activate a node when focused with the keyboard (default: true)
  * @property {boolean} autoCollapse Automatically collapse all siblings, when a node is expanded (default: false).
  * @property {boolean} autoScroll Scroll node into visible area, when focused by keyboard (default: false).
- * @property {boolean|function} checkbox Display checkboxes to allow selection (default: false).<br>
+ * @property {boolean|string|function} checkbox Display checkboxes to allow selection (default: false).<br>
  *     Note that selection via the API or initialization data is still possible.<br>
- *     The 
+ *     true: display a checkbox in front of the node<br>
+ *     false: no checkbox (default)<br>
+ *     "radio": display a radio button in front of the node. This does not modify the selection behavior.<br>
+ *     function(event, data): callback returning true, false, or a string.<br>
+ *     NOTE: changed with v2.23.
  * @property {Integer} clickFolderMode Defines what happens, when the user click a folder node.<br>1:activate, 2:expand, 3:activate and expand, 4:activate/dblclick expands  (default: 4)
  * @property {Integer} debugLevel 0..2 (null: use global setting $.ui.fancytree.debugInfo)
  * @property {function} defaultKey callback(node) is called for new nodes without a key. Must return a new unique key. (default null: generates default keys like that: "_" + counter)
@@ -131,8 +144,9 @@ var TreePatch = {};
  * @property {boolean|function} icon Display node icons (default: true)<br>
  *     true: use default icons, depending on `node.folder` and `node.expanded`<br>
  *     false: hide icons<br>
- *     function(node, data): callback returning true, false, or a string.<br>
+ *     function(event, data): callback returning true, false, or a string.<br>
  *     NOTE: changed with v2.14.<br>
+ *     See also <a href="https://github.com/mar10/fancytree/wiki#dynamic-options">dynamic options</a>.<br>
  *	   See the node option of the same name for an explanation of possible string values.
  * @property {boolean} <del>icons</del> @deprecated use `icon` instead
  * @property {string} idPrefix prefix used to generate node markup ID attributes (default: "ft_", requires generateIds to be set)
@@ -159,6 +173,7 @@ var TreePatch = {};
  *     true:  Copy `node.title` as tooltip<br>
  *     function:  A callback(node)<br>
  *	   Note: If a node has the `node.tooltip` attribute set, this will take precedence.<br>
+ *     See also <a href="https://github.com/mar10/fancytree/wiki#dynamic-options">dynamic options</a>.<br>
  *	   Note: If a separate tooltip widget is used, it may be more efficient to use that widget API instead, instead of duplicating tree markup. (<a href="http://api.jqueryui.com/tooltip/#option-content">For example jQuery UI Tooltip</a>.)
  * @property {boolean|function} unselectable
  * @property {boolean|function} unselectableIgnore

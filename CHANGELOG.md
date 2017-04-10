@@ -1,10 +1,23 @@
-# 2.22.0-0 ext-select branch / Unreleased
+# 2.23.0-0 ext-select branch / Unreleased
   * [Changed] #626 refactor the select behavior: 
     [details](https://github.com/mar10/fancytree/wiki/SpecSelect)
-  * CHANGED:
-    `hideCheckbox` option was removed. Use `checkbox: false` instead
-  * Dynamic options:
-    checkbox, unselectable, unselectableIgnore, unselectableStatus
+  * BREAKING CHANGES:
+    * The `hideCheckbox` option was removed. Use `checkbox: false` instead.  
+      Note that the `<li class='hideCheckbox'>` is still parsed from input 
+      HTML and converted accordingly.
+    * The optional modifer class `<div class='fancytree-radio'>` was removed.
+      This class was used on the **container** to turn all checkbox items into 
+      radio buttons.  
+      Instead, this class is now added to <span class="fancytree-checkbox fancytree-radio">.  
+      Use the `checkox: "radio"` option to activate this.
+
+  * Allow control of selection status propagation with new options:  
+    unselectable, unselectableIgnore, unselectableStatus
+  * Use the new dynamic options pattern for
+    checkbox, icon, unselectable, unselectableIgnore, unselectableStatus
+  * option 'checkbox' can have the value 'radio'
+  * [Added] option 'radiogroup' enables single-select for child nodes
+  * [Added] New method `node.visitSiblings()`
 
 # 2.22.0 / 2017-04-11
   * [Added] ext-dnd5 now part of standard distribution

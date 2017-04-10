@@ -1061,7 +1061,7 @@ QUnit.module("Selection mode 3");
 
 QUnit.test("load behavior", function(assert) {
 	tools.setup(assert);
-	assert.expect(26);
+	assert.expect(30);
 
 	var tree;
 
@@ -1095,6 +1095,11 @@ QUnit.test("load behavior", function(assert) {
 					{title: "n3.3.2 (unselectableStatus: false, unselectableIgnore)", unselectable: true, unselectableStatus: false, unselectableIgnore: true},
 					{title: "n3.3.3"}
 				]}
+			]},
+			{title: "n4 (radiogroup)", radiogroup: true, unselectable: true, children: [
+				{title: "n4.1 (selected)", selected: true},
+				{title: "n4.2"},
+				{title: "n4.3"}
 			]}
 		],
 		init: function(event, data) {
@@ -1195,9 +1200,25 @@ QUnit.test("load behavior", function(assert) {
 	assert.equal(tools.getNode("n3.3").isSelected(), false,
 		"propagate up `deselect`: parent deselected, because of ignored siblings");
 
-	// tree.visit(function(n){
-	// 	n.setExpanded();
-	// });
+	// radiogroup
+
+	tools.getNode("n4.1").setSelected();
+
+	assert.equal(tools.getNode("n4.1").isSelected(), true,
+		"radiogroup `select`: select first");
+	assert.ok(!tools.getNode("n4.2").isSelected() && !tools.getNode("n4.3").isSelected(),
+		"radiogroup `select`: deselect siblings");
+
+	tools.getNode("n4.3").setSelected();
+
+	assert.equal(tools.getNode("n4.3").isSelected(), true,
+		"radiogroup `select`: select last");
+	assert.ok(!tools.getNode("n4.1").isSelected() && !tools.getNode("n4.2").isSelected(),
+		"radiogroup `select`: deselect siblings");
+
+	tree.visit(function(n){
+		n.setExpanded();
+	});
 });
 
 
