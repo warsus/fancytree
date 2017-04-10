@@ -32,7 +32,7 @@ if ( $.ui && $.ui.fancytree ) {
 
 var i, attr,
 	FT = null, // initialized below
-	TEST_IMG = new RegExp(/\.|\//),  // strings are considered image urls if they conatin '.' or '/'
+	TEST_IMG = new RegExp(/\.|\//),  // strings are considered image urls if they contain '.' or '/'
 	REX_HTML = /[&<>"'\/]/g,
 	REX_TOOLTIP = /[<>"'\/]/g,
 	RECURSIVE_REQUEST_ERROR = "$recursive_request",
@@ -3780,7 +3780,8 @@ $.extend(Fancytree.prototype,
 		// TODO: we should not set this in the <span> tag also, if we set it here:
 		// Maybe most (all) of the classes should be set in LI instead of SPAN?
 		if(node.li){
-			node.li.className = isLastSib ? cn.lastsib : "";
+			// #719: we have to consider that there may be already other classes:
+			$(node.li).toggleClass(cn.lastsib, isLastSib);
 		}
 	},
 	/** Activate node.
@@ -3920,7 +3921,8 @@ $.extend(Fancytree.prototype,
 		});
 		// vvv Code below is executed after loading finished:
 		_afterLoad = function(callback){
-			var isVisible, isExpanded,
+			var cn = opts._classNames,
+				isVisible, isExpanded,
 				effect = opts.toggleEffect;
 
 			node.expanded = flag;
@@ -3941,14 +3943,18 @@ $.extend(Fancytree.prototype,
 				} else {
 					// The UI toggle() effect works with the ext-wide extension,
 					// while jQuery.animate() has problems when the title span
-					// has positon: absolute
+					// has positon: absolute.
+					// Since jQuery UI 1.12, the blind effect requires the parent
+					// element to have 'position: relative'.
 					// See #716, #717
-					$(node.ul).parent().addClass("fancytree-animating");
+					$(node.li).addClass(cn.animating);  // #717
+//					node.info("fancytree-animating start: " + node.li.className);
 					$(node.ul)
-						.addClass("fancytree-animating")
+						.addClass(cn.animating)  // # 716
 						.toggle(effect.effect, effect.options, effect.duration, function(){
-							$(this).removeClass("fancytree-animating");
-							$(this).parent().removeClass("fancytree-animating");
+//							node.info("fancytree-animating end: " + node.li.className);
+							$(this).removeClass(cn.animating);  // #716
+							$(node.li).removeClass(cn.animating);  // #717
 							callback();
 						});
 					return;
@@ -4496,6 +4502,7 @@ $.widget("ui.fancytree",
 		_classNames: {
 			node: "fancytree-node",
 			folder: "fancytree-folder",
+			animating: "fancytree-animating",
 			combinedExpanderPrefix: "fancytree-exp-",
 			combinedIconPrefix: "fancytree-ico-",
 			hasChildren: "fancytree-has-children",
@@ -4939,7 +4946,7 @@ $.extend($.ui.fancytree,
 		widget = el.data("ui-fancytree") || el.data("fancytree"); // the latter is required by jQuery <= 1.8
 		return widget ? widget.tree : null;
 	},
-	/** Return an option value that has a default, but may be overridden by a 
+	/** Return an option value that has a default, but may be overridden by a
 	 * callback or a node instance attribute.
 	 *
 	 * Evaluation sequence:<br>
@@ -4993,7 +5000,7 @@ $.extend($.ui.fancytree,
 	 * @returns {string}
 	 *
 	 * @example
-	 
+
 	switch( $.ui.fancytree.eventToString(event) ) {
 		case "-":
 			tree.nodeSetExpanded(ctx, false);
