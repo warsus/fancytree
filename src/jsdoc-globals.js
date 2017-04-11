@@ -170,8 +170,8 @@ var TreePatch = {};
  * @property {object} toggleEffect Animation options, false:off (default: { effect: "blind", options: {direction: "vertical", scale: "box"}, duration: 200 })
  * @property {boolean|function} tooltip Add a `title` attribute to the node markup, thus enabling a tooltip (default: false).<br>
  *	   false: No automatic tooltip (but still honor `node.tooltip` attribute)<br>
- *     true:  Copy `node.title` as tooltip<br>
- *     function:  A callback(node)<br>
+ *     true:  Use `node.title` as tooltip<br>
+ *     function:  A `callback(event, data)<br>
  *	   Note: If a node has the `node.tooltip` attribute set, this will take precedence.<br>
  *     See also <a href="https://github.com/mar10/fancytree/wiki#dynamic-options">dynamic options</a>.<br>
  *	   Note: If a separate tooltip widget is used, it may be more efficient to use that widget API instead, instead of duplicating tree markup. (<a href="http://api.jqueryui.com/tooltip/#option-content">For example jQuery UI Tooltip</a>.)

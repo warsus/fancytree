@@ -3661,11 +3661,15 @@ $.extend(Fancytree.prototype,
 			nodeTitle = opts.renderTitle.call(tree, {type: "renderTitle"}, ctx) || "";
 		}
 		if ( !nodeTitle ) {
-			if( node.tooltip ) {
-				tooltip = node.tooltip;
-			} else if ( opts.tooltip ) {
-				tooltip = opts.tooltip === true ? node.title : opts.tooltip.call(tree, node);
+			tooltip = FT.evalOption("tooltip", node, node, opts, null);
+			if( tooltip === true ) {
+				tooltip = node.title;
 			}
+			// if( node.tooltip ) {
+			// 	tooltip = node.tooltip;
+			// } else if ( opts.tooltip ) {
+			// 	tooltip = opts.tooltip === true ? node.title : opts.tooltip.call(tree, node);
+			// }
 			tooltip = tooltip ? " title='" + _escapeTooltip(tooltip) + "'" : "";
 			id = aria ? " id='ftal_" + opts.idPrefix + node.key + "'" : "";
 			// role = "";

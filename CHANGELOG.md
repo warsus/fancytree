@@ -9,15 +9,21 @@
       This class was used on the **container** to turn all checkbox items into 
       radio buttons.  
       Instead, this class is now added to <span class="fancytree-checkbox fancytree-radio">.  
-      Use the `checkox: "radio"` option to activate this.
+      Use the `tree.checkox: "radio"` option to activate this for the whole tree.
+    * The callback signature for the `tree.tooltip` option has changed to 
+      `tooltip(event, data)`
 
-  * Allow control of selection status propagation with new options:  
+  * Refactoring of `selectMode: 3` behavior:  
+    Allow control of selection status propagation with new options:  
     unselectable, unselectableIgnore, unselectableStatus
+    See also the <a href="https://github.com/mar10/fancytree/wiki/SpecSelect">specification</a>.
   * Use the new dynamic options pattern for
-    checkbox, icon, unselectable, unselectableIgnore, unselectableStatus
-  * option 'checkbox' can have the value 'radio'
+    checkbox, icon, tooltip, unselectable, unselectableIgnore, unselectableStatus.  
+    See also <a href="https://github.com/mar10/fancytree/wiki#dynamic-options">dynamic options</a>.
   * [Added] option 'radiogroup' enables single-select for child nodes
   * [Added] New method `node.visitSiblings()`
+  * [Improved] Option 'checkbox' can have the string value "radio" (only visual
+    effect)
 
 # 2.22.0 / 2017-04-11
   * [Added] ext-dnd5 now part of standard distribution
