@@ -4097,9 +4097,11 @@ $.extend(Fancytree.prototype,
 	 * @returns {boolean} previous status
 	 */
 	nodeSetSelected: function(ctx, flag, callOpts) {
+		callOpts = callOpts || {};
 		var node = ctx.node,
 			tree = ctx.tree,
-			opts = ctx.options;
+			opts = ctx.options,
+			noEvents = (callOpts.noEvents === true);
 
 		// flag defaults to true
 		flag = (flag !== false);
@@ -4128,8 +4130,9 @@ $.extend(Fancytree.prototype,
 		}
 		/*jshint +W018 */
 
-		if ( this._triggerNodeEvent("beforeSelect", node, ctx.originalEvent) === false ){
-			return !!node.selected;
+		if( !noEvents &&
+			this._triggerNodeEvent("beforeSelect", node, ctx.originalEvent) === false ) {
+				return !!node.selected;
 		}
 		if(flag && opts.selectMode === 1){
 			// single selection mode (we don't uncheck all tree nodes, for performance reasons)
@@ -4151,7 +4154,9 @@ $.extend(Fancytree.prototype,
 		}
 		this.nodeRenderStatus(ctx);
 		tree.lastSelectedNode = flag ? node : null;
-		tree._triggerNodeEvent("select", ctx);
+		if( !noEvents ) {
+			tree._triggerNodeEvent("select", ctx);
+		}
 	},
 	/** Show node status (ok, loading, error, nodata) using styles and a dummy child node.
 	 *

@@ -21,6 +21,7 @@
     checkbox, icon, tooltip, unselectable, unselectableIgnore, unselectableStatus.  
     See also <a href="https://github.com/mar10/fancytree/wiki#dynamic-options">dynamic options</a>.
   * [Added] option 'radiogroup' enables single-select for child nodes
+  * [Added] option 'opts.noEvents' to `setSelected(flag, opts)`
   * [Added] New method `node.visitSiblings()`
   * [Improved] Option 'checkbox' can have the string value "radio" (only visual
     effect)
