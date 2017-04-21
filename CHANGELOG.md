@@ -25,6 +25,12 @@
   * [Improved] Option 'checkbox' can have the string value "radio" (only visual
     effect)
 
+# 2.22.2-0 / Unreleased
+  * 
+
+# 2.22.1 / 2017-04-21
+  * [Fixed] #722 Fix regression with addChild performance improvements (#708)
+
 # 2.22.0 / 2017-04-11
   * [Added] ext-dnd5 now part of standard distribution
   * [Added] #693 ext-dnd/dnd5: configurable drop marker offset
