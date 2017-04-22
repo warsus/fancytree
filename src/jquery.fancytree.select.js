@@ -47,7 +47,7 @@ $.ui.fancytree.registerExtension({
 			// TODO
 		});
 	},
-	nodeSetSelected: function(ctx, flag) {
+	nodeSetSelected: function(ctx, flag, callOpts) {
 		return this._superApply(arguments);
 	}
 });
