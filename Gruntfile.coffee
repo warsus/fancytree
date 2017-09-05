@@ -22,7 +22,8 @@ module.exports = (grunt) ->
                 # "<%= grunt.template.today('yyyy-mm-dd HH:mm') %>\n" +
                 "<%= pkg.homepage ? '  * ' + pkg.homepage + '\\n' : '' %>" +
                 "  * Copyright (c) <%= grunt.template.today('yyyy') %> <%= pkg.author.name %>;" +
-                " Licensed <%= _.map(pkg.licenses, 'type').join(', ') %> */\n"
+                " Licensed <%= _.map(pkg.licenses, 'type').join(', ') %>\n" +
+                " */\n"
 
     clean:
         build:
@@ -68,7 +69,6 @@ module.exports = (grunt) ->
 #                "src/jquery.fancytree.fixed.js"
                 "src/jquery.fancytree.glyph.js"
                 "src/jquery.fancytree.gridnav.js"
-#                "src/jquery.fancytree.menu.js"
                 "src/jquery.fancytree.persist.js"
                 "src/jquery.fancytree.table.js"
                 "src/jquery.fancytree.themeroller.js"
@@ -76,6 +76,7 @@ module.exports = (grunt) ->
                 # "lib/outro.js"
                 ]
             dest: "build/<%= pkg.name %>-all.js"
+
         custom:
             options:
                 banner: "<%= meta.banner %>"
@@ -103,7 +104,6 @@ module.exports = (grunt) ->
 #                "build/jquery.fancytree.fixed.min.js"
                 "build/jquery.fancytree.glyph.min.js"
                 "build/jquery.fancytree.gridnav.min.js"
-#                "build/jquery.fancytree.menu.min.js"
                 "build/jquery.fancytree.persist.min.js"
                 "build/jquery.fancytree.table.min.js"
                 "build/jquery.fancytree.themeroller.min.js"
@@ -112,44 +112,86 @@ module.exports = (grunt) ->
                 ]
             dest: "build/<%= pkg.name %>-all.min.js"
 
-        "all-deps":
+#         "all-deps-min":
+#             options:
+#                 banner: "<%= meta.banner %>"
+#                 stripBanners: true
+#                 process: (src, fspec) ->
+#                   # Remove all comments, including /*! ... */
+#                   # (but keep disclaimer for jQuery-UI)
+#                   if not /jquery-ui..+.min.js/.test(fspec)
+#                       src = src.replace(/\/\*(.|\n)*\*\//g, "")
+#                   if /jquery.fancytree.min.js/.test(fspec)
+#                       src = "\n/*! Fancytree Core */" + src
+#                   if /fancytree..+.min.js/.test(fspec)
+#                     # If it is an extension:
+#                     # Prepend a one-liner instead
+#                     fspec = fspec.substr(6) # strip 'build/'
+#                     src = "\n/*! Extension '" + fspec + "' */" + src
+#                   return src
+#             src: [
+#                 "lib/intro-all-deps.js"
+#                 "src/jquery-ui-dependencies/jquery-ui.min.js"
+# #                "build/jquery.fancytree.ariagrid.min.js"
+#                 "build/jquery.fancytree.min.js"
+#                 "build/jquery.fancytree.childcounter.min.js"
+#                 "build/jquery.fancytree.clones.min.js"
+# #                "build/jquery.fancytree.dnd.min.js"
+#                 "build/jquery.fancytree.dnd5.min.js"
+#                 "build/jquery.fancytree.edit.min.js"
+#                 "build/jquery.fancytree.filter.min.js"
+# #                "build/jquery.fancytree.fixed.min.js"
+#                 "build/jquery.fancytree.glyph.min.js"
+#                 "build/jquery.fancytree.gridnav.min.js"
+#                 "build/jquery.fancytree.persist.min.js"
+#                 "build/jquery.fancytree.table.min.js"
+# #                "build/jquery.fancytree.themeroller.min.js"
+#                 "build/jquery.fancytree.wide.min.js"
+#                 "lib/outro.js"
+#                 ]
+#             dest: "build/<%= pkg.name %>-all-deps.min.js"
+
+        "all-deps":  # un-minified, so we can generate a map file
             options:
                 banner: "<%= meta.banner %>"
                 stripBanners: true
                 process: (src, fspec) ->
                   # Remove all comments, including /*! ... */
                   # (but keep disclaimer for jQuery-UI)
-                  if not /jquery-ui..+.min.js/.test(fspec)
-                      src = src.replace(/\/\*(.|\n)*\*\//g, "")
-                  if /jquery.fancytree.min.js/.test(fspec)
+                  # if not /jquery-ui..+.js/.test(fspec)
+                  # # if not /jquery-ui..+.min.js/.test(fspec)
+                  #     src = src.replace(/\/\*(.|\n)*\*\//g, "")
+                  if /jquery.fancytree.js/.test(fspec)
                       src = "\n/*! Fancytree Core */" + src
-                  if /fancytree..+.min.js/.test(fspec)
+                  if /fancytree..+.js/.test(fspec)
                     # If it is an extension:
                     # Prepend a one-liner instead
                     fspec = fspec.substr(6) # strip 'build/'
                     src = "\n/*! Extension '" + fspec + "' */" + src
                   return src
             src: [
+                "<%= meta.banner %>"
+                "src/jquery-ui-dependencies/jquery-ui.js"
                 "lib/intro-all-deps.js"
-                "src/jquery-ui-dependencies/jquery-ui.min.js"
-#                "build/jquery.fancytree.ariagrid.min.js"
-                "build/jquery.fancytree.min.js"
-                "build/jquery.fancytree.childcounter.min.js"
-                "build/jquery.fancytree.clones.min.js"
-#                "build/jquery.fancytree.dnd.min.js"
-                "build/jquery.fancytree.dnd5.min.js"
-                "build/jquery.fancytree.edit.min.js"
-                "build/jquery.fancytree.filter.min.js"
-#                "build/jquery.fancytree.fixed.min.js"
-                "build/jquery.fancytree.glyph.min.js"
-                "build/jquery.fancytree.gridnav.min.js"
-                "build/jquery.fancytree.persist.min.js"
-                "build/jquery.fancytree.table.min.js"
-#                "build/jquery.fancytree.themeroller.min.js"
-                "build/jquery.fancytree.wide.min.js"
+                "src/jquery.fancytree.js"
+#                "build/jquery.fancytree.ariagrid.js"
+                "src/jquery.fancytree.childcounter.js"
+                "src/jquery.fancytree.clones.js"
+#                "src/jquery.fancytree.columnview.js"
+                # "src/jquery.fancytree.dnd.js"
+                "src/jquery.fancytree.dnd5.js"
+                "src/jquery.fancytree.edit.js"
+                "src/jquery.fancytree.filter.js"
+#                "src/jquery.fancytree.fixed.js"
+                "src/jquery.fancytree.glyph.js"
+                "src/jquery.fancytree.gridnav.js"
+                "src/jquery.fancytree.persist.js"
+                "src/jquery.fancytree.table.js"
+                "src/jquery.fancytree.themeroller.js"
+                "src/jquery.fancytree.wide.js"
                 "lib/outro.js"
                 ]
-            dest: "build/<%= pkg.name %>-all-deps.min.js"
+            dest: "build/<%= pkg.name %>-all-deps.js"
 
     connect:
         forever:
@@ -255,14 +297,9 @@ module.exports = (grunt) ->
     jsdoc:
         build:
             src: ["src/*.js", "doc/README.md"]
-            # src: ["src/*.js", "doc/README.md", "doc/jsdoctest.js"]
             options:
                 destination: "doc/jsdoc"
                 template: "bin/jsdoc3-moogle",
-                # template: "bin/jsdoc3.0.0-moogle",
-                # template: "node_modules/ink-docstrap/template",
-                # template: "node_modules/minami",
-                # template: "node_modules/tui-jsdoc-template",
                 configure: "doc/jsdoc.conf.json"
                 verbose: true
 
@@ -393,20 +430,6 @@ module.exports = (grunt) ->
                 ]
 
     uglify:
-        # build:
-        #     options:
-        #         banner: "<%= meta.banner %>"
-        #         # preserveComments: "some"
-        #         report: "min"
-        #         sourceMap:
-        #             (path) -> path.replace(/.js/, ".js.map")
-        #         sourceMappingURL:
-        #             (path) -> path.replace(/^build\//, "") + ".map"
-        #         sourceMapPrefix: 1 # strip 'build/' from paths
-
-        #     files:
-        #         "build/<%= pkg.name %>.min.js": ["<%= concat.core.dest %>"],
-        #         "build/<%= pkg.name %>-all.min.js": ["<%= concat.all.dest %>"]
 
         custom:
             options:  # see https://github.com/gruntjs/grunt-contrib-uglify/issues/366
@@ -426,18 +449,26 @@ module.exports = (grunt) ->
                       return dest + folder + filename + ".min.js"
               }
               ]
-        # map_all:
-        #     options:
-        #         compress: false
-        #         mangle: false
-        #         sourceMap: true
-        #         preserveComments: 'all'
-        #     files: [
-        #       {
-        #           src: 'build/jquery.fancytree-all.min.js'
-        #           dest: 'build/jquery.fancytree-all.min.js.map'
-        #       }
-        #       ]
+
+        "all-deps":
+            options:  # see https://github.com/gruntjs/grunt-contrib-uglify/issues/366
+                report: "min"
+                sourceMap: true
+                # preserveComments: "some"
+                preserveComments: /(?:^!|@(?:license|preserve|cc_on))/
+            files: [
+              {
+                  src: ["jquery.fancytree-all-deps.js"]
+                  cwd: "build/"
+                  dest: "build/"
+                  expand: true
+                  rename: (dest, src) ->
+                      folder = src.substring(0, src.lastIndexOf("/"))
+                      filename = src.substring(src.lastIndexOf("/"), src.length)
+                      filename  = filename.substring(0, filename.lastIndexOf("."))
+                      return dest + folder + filename + ".min.js"
+              }
+              ]
 
     watch:
         less:
@@ -514,6 +545,7 @@ module.exports = (grunt) ->
       "uglify:custom"
       "concat:custom"
       "concat:all-deps"
+      "uglify:all-deps"
       "clean:extMin"
       "replace:production"
       "jshint:afterConcat"
