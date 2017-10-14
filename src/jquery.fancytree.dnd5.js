@@ -47,7 +47,9 @@ var
 	$dropMarker = null,
 	SOURCE_NODE = null,
 	DRAG_ENTER_RESPONSE = null,
-	LAST_HIT_MODE = null;
+	LAST_HIT_MODE = null,
+	PREV_NODE = null,
+	PREV_TITLE = null;
 
 /* Convert number to string and prepend +/-; return empty string for 0.*/
 function offsetString(n){
@@ -159,8 +161,15 @@ function handleDragOver(event, data) {
 		markerAt = "center",
 		// $source = sourceNode ? $(sourceNode.span) : null,
 		$target = $(targetNode.span),
-		$targetTitle = $target.find("span.fancytree-title");
+		$targetTitle = null;
 
+	if(PREV_NODE === targetNode){
+		$targetTitle = PREV_TITLE;
+	} else {
+		$targetTitle = $target.find("span.fancytree-title");
+		PREV_NODE = targetNode;
+		PREV_TITLE = $targetTitle;
+	}
 	if(DRAG_ENTER_RESPONSE === false){
 		tree.info("Ignore dragover, since dragenter returned false");  //, event, data);
 		// $.error("assert failed: dragenter returned false");
